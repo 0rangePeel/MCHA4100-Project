@@ -1,6 +1,7 @@
 clc
 clear
 
-x = 5
-y = 10
-z = x + z
+% Merge Test Experiment
+x = 100
+y = 5
+z = x - y
