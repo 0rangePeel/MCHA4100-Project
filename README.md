@@ -11,5 +11,3 @@
  System Identification
 
  Guidance
-
-dwad
