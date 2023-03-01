@@ -1,6 +1,7 @@
+%% Task One
 clc
 clear
-%% Task One
+
 N = 1000;
 w = 7;
 b=5;
