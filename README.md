@@ -1,13 +1,15 @@
 # MCHA4100-Project
- MCHA4100 Project for semster 1 2023
+MCHA4100 Project for semster 1 2023
 
- ## Team Composition
- Supervisory
+## Team Composition
+Supervisory System - Oliver Johns
 
- Navigation
+Guidance - Jayden Maidstone
 
- Control
+Control - Jamie Tsang Chow Chang
 
- System Identification
+Navigation - Sam McFarlane
 
- Guidance
+System Identification - Farai Manyanga
+
+## Git Procedure
