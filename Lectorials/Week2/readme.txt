@@ -1,0 +1,1 @@
+This folder contains the content for Week 2 lectorial
