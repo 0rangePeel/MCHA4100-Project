@@ -10,35 +10,34 @@ clc;
 %% Define motor object and define parameters
 bicycle = classBicycleDynamics;     % Obtain the object from classBicycleDynamics.m
 
-bicycle.Lf = 1;                 % Length of forward wheel to center of gravity (m)
-bicycle.Lr = 1;                 % Length of back wheel to center of gravity (m)
+bicycle.Lf = 1.4;                 % Length of forward wheel to center of gravity (m)
+bicycle.Lr = 1.6;                 % Length of back wheel to center of gravity (m)
 bicycle.g = 9.81;               % Acceleration due to Gravity (m/s/s)
-bicycle.m = 500;                % Mass of the vehicle (kg)
-bicycle.Calphaf = 0.8;          % Cornering stiffness coefficient for front tyre
-bicycle.Calphar = 0.8;          % Cornering stiffness coefficient for rear tyre
+bicycle.m = 2000;                % Mass of the vehicle (kg)
+bicycle.Calphaf = 12e3;          % Cornering stiffness coefficient for front tyre
+bicycle.Calphar = 11e3;          % Cornering stiffness coefficient for rear tyre
 
-bicycle.Iz = bicycle.m*bicycle.Lf*bicycle.Lr;              % Moment of Inertia about the Z-axis
+bicycle.Iz = 4000;              % Moment of Inertia about the Z-axis
 
 
 
 %% Solve the ODE
 % Simulation time
 dt = 0.1;
-t_sim = 0:dt:50;
+t_sim = 0:dt:120;
 t = t_sim;
 
 % Initial Conditions
-x0 = [0; 0; 0; 0; 0];      % x = [xg, yg, theta, vy, r]
+x0 = [5; 5; 0; 0; 0];      % x = [xg, yg, theta, vy, r]
 
 
 %% Define inputs
 Vx = 10;                     % In m/s, velocity of the vehicle
-sigma_f = deg2rad(20);       % In radians, converted from degrees
+sigma_f = deg2rad(50);       % In radians, converted from degrees
 
 
 %% Define system ODE --- x = [xg, yg, theta, vy, r] and u = [sigma_f]
 
-% Create function handle for solver input format
 sys_wrap = @(t,x) bicycle.state_derivative(x, sigma_f, Vx);
 
 % Solve ODE
@@ -99,7 +98,7 @@ hold(ax, 'on');
 hFt     = plot(ax, nan(size(E)), nan(size(N)), 'r');
 hRt     = plot(ax, nan(size(E)), nan(size(N)), 'g');
 hCt     = plot(ax, nan(size(E)), nan(size(N)), 'b');
-% hP      = plot(ax, nan, nan, 'k-');
+hP      = plot(ax, nan, nan, 'k-');
 hF      = plot(ax, 0, 0, 'r.');
 hR      = plot(ax, 0, 0, 'g.');
 hC      = plot(ax, 0, 0, 'b.');
@@ -116,8 +115,6 @@ xlabel(ax, 'East [m]');
 ylabel(ax, 'North [m]');
 
 
-% theta = linspace(3*pi/2, pi/2, 50);
-% rPCb = [ [0; r; 0], [a; r; 0], [a; -r; 0], [0; -r; 0], r*[cos(theta); sin(theta); zeros(size(theta))] ];
 Se3  = skew([0; 0; 1]);
 
 rCNn = nan(3, length(t));
@@ -128,18 +125,34 @@ rBNn = nan(3, length(t));
 rFBb = [bicycle.Lf; 0; 0];
 rRBb = [-bicycle.Lr; 0; 0];
 
+% Plot the body of the vehicle
+r = 0.5;      % Equvalent to the Lf and Lr variables, % North, East, Down
+d = 1.5;
+% Draw car shape
+curve = linspace(3*pi/2, pi/2, 50);
+
+% Plotting and drawing body of the vehicle
+rPCb = [ [-d; r; 0], [d; r; 0], [d; -r; 0], [-d; -r; 0], [-d; r; 0], ... % Car Body
+    [-d; r+0.25; 0], [-d+1; r+0.25; 0], [-d+1; r; 0], ...  % Car Wheel 1 - Back wheel
+    [d; r; 0], [d; r+0.25; 0], [d-1; r+0.25; 0], [d-1; r; 0], [d; r; 0], ...  % Car Wheel 2 - Front wheel (Turning wheel)
+    [d; -r; 0], [d; -r-0.25; 0], [d-1; -r-0.25; 0], [d-1; -r; 0], [d; -r; 0], ... % Car Wheel 3 - Front wheel (Turning wheel)
+    [-d; -r; 0], [-d; -r-0.25; 0], [-d+1; -r-0.25; 0], [-d+1; -r; 0], ...          % Car Wheel 4 - Back wheel
+    [-d; -r; 0], [-d; r; 0], [d; r; 0], -r*[cos(curve)-2.5; sin(curve); zeros(size(curve))]];     % Mad Aerodynamics
+
+                        
 
 for i = 1:length(t)
-%     Rnb = expm(psi(i)*Se3);
+    Rnb = [sin(theta(i)) cos(theta(i)) 0; cos(theta(i)) -sin(theta(i)) 0; 0 0 1];
     rCNn(:, i) = [N(i); E(i); 0];
     rBNn(:, i) = [N(i); E(i); 0];
 
     rFNn(:, i) = rBNn(:, i) + [bicycle.Lf*sin(theta(i)); bicycle.Lf*cos(theta(i)); 0];
     rRNn(:, i) = rBNn(:, i) + [-bicycle.Lr*sin(theta(i)); -bicycle.Lr*cos(theta(i)); 0];
 
-%     rPNn = rCNn(:, i) + Rnb*rPCb;
-%     hP.XData = rPNn(2, :);
-%     hP.YData = rPNn(1, :);
+
+    rPNn = rCNn(:, i) + Rnb*rPCb;
+     hP.XData = rPNn(2, :);
+     hP.YData = rPNn(1, :);
     
     hFt.XData = rFNn(2, :);
     hFt.YData = rFNn(1, :);

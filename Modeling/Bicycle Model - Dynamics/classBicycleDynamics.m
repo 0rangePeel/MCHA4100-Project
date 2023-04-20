@@ -40,7 +40,7 @@ methods
     % 'A' matrix from the Dynamics Paper
     function A = A_equ(obj, sigma_f, Vx)
 
-        A = -(obj.Calphaf*cos(sigma_f) + obj.Calphar)/(obj.m*Vx);
+        A = -((obj.Calphaf*cos(sigma_f) + obj.Calphar)/(obj.m*Vx));
 
     end
 
@@ -48,7 +48,7 @@ methods
     % 'B' matrix from the Dynamics Paper
     function B = B_equ(obj, sigma_f, Vx)
 
-        B = ( (-obj.Lf*obj.Calphaf*cos(sigma_f) + obj.Lr*obj.Calphar) / (obj.m*Vx) ) - Vx;
+        B = ( (-obj.Lf*obj.Calphaf*cos(sigma_f) + obj.Lr*obj.Calphar) / (Vx*obj.Iz) );
 
     end
 
@@ -56,7 +56,7 @@ methods
     % 'C' matrix from the Dynamics Paper
     function C = C_equ(obj, sigma_f, Vx)
 
-        C = (-obj.Lf*obj.Calphaf*cos(sigma_f) + obj.Lr*obj.Calphar)/(obj.Iz*Vx);
+        C = ((-obj.Lf*obj.Calphaf*cos(sigma_f) + obj.Lr*obj.Calphar)/(obj.m*Vx)) - Vx;
 
     end
 
