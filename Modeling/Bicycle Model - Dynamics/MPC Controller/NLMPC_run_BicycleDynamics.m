@@ -41,7 +41,7 @@ params(8) = params_struct.Vx;
 
 %% Define initial input
 Vx = params_struct.Vx;
-sigma_f = deg2rad(20);        % In radians, steering angle
+sigma_f = deg2rad(0);        % In radians, steering angle
 
 
 
@@ -92,12 +92,13 @@ nlobj.Model.NumberOfParameters = 1;
 
 %% Define weights for control cost function
 % Assuming all states are measured by default
+nlobj.Weights.ManipulatedVariables = [1; 1; 1e3; 1; 1e3]; % Tuning Parameter Weights
+nlobj.Weights.ManipulatedVariablesRate = [0.1; 0.1; 1e2; 0.1; 1e2];              % Tuning Parameter Weights
 nlobj.Weights.OutputVariables   = [1e1, 1e1];      % Weights for cost function
 
 % Here we inform the controller that we would like to control measured
 % outputs, rather than states
 nlobj.Model.OutputFcn           = @(x,u,Ts) BicycleDynamicsOutputFunction(x,u,Ts);
-% nlobj.Weights.OutputVariables   = [1e1 1e0];        % Control measured outputs, rather than states
 
 
 %% Set output constraints
@@ -109,14 +110,14 @@ nlobj.Model.OutputFcn           = @(x,u,Ts) BicycleDynamicsOutputFunction(x,u,Ts
 
 
 %% Set initial conditions and reference setpoint
-x0 = zeros(5,1);
+x0 = [0; 0; deg2rad(180); 0; deg2rad(40)];
 u0  = [sigma_f]; % Start from the equilibrium input [sigma_f]
 
 x  = x0;  % Start the sim at initial conditions
 u  = u0;
 
 
- yref = [50, 50]; % Reference for the controller [Xg, Yg]
+ yref = [50, 100]; % Reference for the controller [Xg, Yg]
 
 
  %% Reference Trajectory...
@@ -124,7 +125,7 @@ u  = u0;
 
 
 %% Run the simulation
-tsim = 60;
+tsim = 30;
 hbar = waitbar(0,'Simulation Progress');
 xHist = zeros(nx,tsim/Ts + 1);      % Matrix to store the values of the states
 uHist = zeros(nu,tsim/Ts + 1);      % Matrix to store the values of the input
@@ -146,7 +147,10 @@ for t = 1:(tsim/Ts)
 %     end
 
 
- 
+    if (x(1) >= 50) && (x(2) >= 50)
+        params_struct.Vx = 0.01;
+        params(8) = params_struct.Vx;
+    end
 
 
     % To update trajectory at a later time, consider using another if.
