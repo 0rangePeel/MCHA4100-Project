@@ -287,6 +287,8 @@ hFt     = plot(ax, nan(size(E)), nan(size(N)), 'r');
 hRt     = plot(ax, nan(size(E)), nan(size(N)), 'g');
 hCt     = plot(ax, nan(size(E)), nan(size(N)), 'b');
 hP      = plot(ax, nan, nan, 'k-');
+hFLw    = plot(ax, nan, nan, 'k-');
+hFRw    = plot(ax, nan, nan, 'k-');
 hF      = plot(ax, 0, 0, 'r.');
 hR      = plot(ax, 0, 0, 'g.');
 hC      = plot(ax, 0, 0, 'b.');
@@ -312,6 +314,8 @@ rCNn = nan(3, length(t));
 rFNn = nan(3, length(t));
 rRNn = nan(3, length(t));
 rBNn = nan(3, length(t));
+rFLNn = nan(3, length(t));
+rFRNn = nan(3, length(t));
 
 rFBb = [Lf; 0; 0];
 rRBb = [-Lr; 0; 0];
@@ -324,26 +328,46 @@ curve = linspace(3*pi/2, pi/2, 50);
 
 % Plotting and drawing body of the vehicle
 rPCb = [ [-d; r; 0], [d; r; 0], [d; -r; 0], [-d; -r; 0], [-d; r; 0], ... % Car Body
-    [-d; r+0.25; 0], [-d+1; r+0.25; 0], [-d+1; r; 0], ...  % Car Wheel 1
-    [d; r; 0], [d; r+0.25; 0], [d-1; r+0.25; 0], [d-1; r; 0], [d; r; 0], ...  % Car Wheel 2
-    [d; -r; 0], [d; -r-0.25; 0], [d-1; -r-0.25; 0], [d-1; -r; 0], [d; -r; 0], ... % Car Wheel 3
-    [-d; -r; 0], [-d; -r-0.25; 0], [-d+1; -r-0.25; 0], [-d+1; -r; 0], ...          % Car Wheel 4
+    [-d; r+0.25; 0], [-d+1; r+0.25; 0], [-d+1; r; 0],[-d; r; 0] ...  % Car Back Left Wheel
+    [-d; -r; 0], [-d; -r-0.25; 0], [-d+1; -r-0.25; 0], [-d+1; -r; 0], ...          % Car Back Right Wheel
     [-d; -r; 0], [-d; r; 0], [d; r; 0], -r*[cos(curve)-2.5; sin(curve); zeros(size(curve))]];     % Mad Aerodynamics
 
+% Plotting Steering Wheels
+rPFLwb = [[0.5; 0; 0], [0.5; (0+0.25); 0] [-0.5; (0+0.25); 0] [-0.5; 0; 0],[0.5; 0; 0]]; % Car Front Left Steering Wheel
+rPFRwb = [[0.5; 0; 0], [0.5; -(0+0.25); 0] [-0.5; -(0+0.25); 0] [-0.5; 0; 0],[0.5; 0; 0]]; % Car Front Right Steering Wheel
                         
 
 for i = 1:length(tHist)
+    % Rotation of Car Body
     Rnb = [sin(theta(i)) cos(theta(i)) 0; cos(theta(i)) -sin(theta(i)) 0; 0 0 1];
+    % Rotation of Steering Wheels attached to Car Body
+    RnbF = [sin(theta(i) + uHist(1, i)) cos(theta(i)+ uHist(1, i)) 0; cos(theta(i)+ uHist(1, i)) -sin(theta(i)+ uHist(1, i)) 0; 0 0 1];
+
     rCNn(:, i) = [N(i); E(i); 0];
     rBNn(:, i) = [N(i); E(i); 0];
 
+    % Position of Front and Rear Wheel Base
     rFNn(:, i) = rBNn(:, i) + [Lf*sin(theta(i)); Lf*cos(theta(i)); 0];
     rRNn(:, i) = rBNn(:, i) + [-Lr*sin(theta(i)); -Lr*cos(theta(i)); 0];
 
+    % Position of Front Left and Right Wheel respectively
+    rFLNn(:, i) = rFNn(:, i) + [r*cos(theta(i)); -r*sin(theta(i)); 0];
+    rFRNn(:, i) = rFNn(:, i) + [-r*cos(theta(i)); r*sin(theta(i)); 0];
 
+    % Draw Car Body
     rPNn = rCNn(:, i) + Rnb*rPCb;
      hP.XData = rPNn(2, :);
      hP.YData = rPNn(1, :);
+
+    % Draw Front Left Steering Wheel
+    rFLwNn = rFLNn(:, i) + RnbF*rPFLwb;
+     hFLw.XData = rFLwNn(2, :);
+     hFLw.YData = rFLwNn(1, :);
+
+    % Draw Front Right Steering Wheel
+    rFRwNn = rFRNn(:, i) + RnbF*rPFRwb;
+     hFRw.XData = rFRwNn(2, :);
+     hFRw.YData = rFRwNn(1, :);
     
     hFt.XData = rFNn(2, :);
     hFt.YData = rFNn(1, :);
