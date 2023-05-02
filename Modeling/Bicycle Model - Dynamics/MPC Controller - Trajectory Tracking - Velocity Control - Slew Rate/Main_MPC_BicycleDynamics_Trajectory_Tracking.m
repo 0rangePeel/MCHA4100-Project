@@ -68,8 +68,8 @@ param.traj = trajectoryDesign(param);
 param.dt    = 0.1;      	% Evaluation time interval (simulation may internally use smaller steps) [s]
 param.T     = 15;        	% Total simulation time [s]
 
-
-options     = odeset('MaxStep', 0.005);
+u = [0; 0]; % Initial stored control action [sigma_f; accel_x]
+options     = odeset('MaxStep', 0.005, 'Events', @(t,x) eventCollision(t, x, u, param, 'Track_downscaled.png'));
 tHist       = 0:param.dt:param.T;       % Specify times the output is returned
 uHist       = nan(2, length(tHist));        % Sigma_f input
 
@@ -99,6 +99,7 @@ switch param.controller
         u = [0; 0];                % Initial stored control action [sigma_f; accel_x]
         uHist(:, 1) = u;
         xHist = zeros(6,  length(tHist));
+        teHist = zeros(1,  length(tHist));
         xHist(:, 1) = x0;
         delete(findall(0, 'tag', 'TMWWaitbar'));  % Remove any stuck waitbars
         wh = waitbar(0, getStatusMsg, ...
@@ -119,16 +120,18 @@ switch param.controller
                 % Simulate one time step with ZOH input u - Used for collision
                 % detection
                     func = @(t, x) bicycleDynamics(t, x, u, param);
-                    [~, xTemp] = ode45(func, [tHist(k) tHist(k+1)], xHist(:, k), options);
+                    [~, xTemp, te, xe, ie] = ode45(func, [tHist(k) tHist(k+1)], xHist(:, k), options);
                     xTemp = xTemp.';
+                    %teHist(:,k) = te;
                     xHist(:, k+1) = xTemp(:, end);
-%                     if ~isempty(te)
-%                         warning('Collision detected');
-%                         uHist(:, k+2:end) = [];
-%                         xHist(:, k+2:end) = [];
-%                         tHist(:, k+2:end) = [];
-%                         break
-%                     end
+                    if ~isempty(te)
+                        warning('Collision detected');
+                        uHist(:, k+2:end) = [];
+                        uHist(:,end) = uHist(:,end-1);
+                        xHist(:, k+2:end) = [];
+                        tHist(:, k+2:end) = [];
+                        break
+                    end
 
 
             
@@ -277,11 +280,19 @@ if outputVideo
 end
 
 
+
 fig     = 4;
 hf      = figure(fig); clf(fig);
 hf.Color = 'w';
 ax      = axes(hf, 'FontSize', 14);
 hold(ax, 'on');
+
+resolution = 5.5;
+threshold = 154;
+image = imread('Track_downscaled.png');
+bwimage = image < threshold;
+map = binaryOccupancyMap(bwimage,resolution);
+show(map)
 
 hFt     = plot(ax, nan(size(E)), nan(size(N)), 'r');
 hRt     = plot(ax, nan(size(E)), nan(size(N)), 'g');
@@ -303,7 +314,7 @@ tC      = text(ax, 0, 0, ' C', 'FontSize', 10, 'Color', 'b');
 hold(ax, 'off');
 axis(ax, 'equal');
 axis(ax, [min(E) - 2, max(E) + 2, min(N) - 2, max(N) + 2]);
-grid(ax, 'on');
+% grid(ax, 'on');
 xlabel(ax, 'East [m]');
 ylabel(ax, 'North [m]');
 
