@@ -59,22 +59,23 @@ end
 % param.Egridlines = Egridlines;
 % param.Ngridlines = Ngridlines;
 
-
-
-% Generate trajectory
-param.traj = trajectoryDesign(param);
+% Set initial conditions
+x0 = bicycleInitialConditions(param);
 
 % Simulation parameters
 param.dt    = 0.1;      	% Evaluation time interval (simulation may internally use smaller steps) [s]
-param.T     = 15;        	% Total simulation time [s]
+param.T     = 70;        	% Total simulation time [s]
+
+
+% Generate trajectory
+param.traj = trajectoryDesign(param,x0,'Track_downscaled.png');
 
 u = [0; 0]; % Initial stored control action [sigma_f; accel_x]
 options     = odeset('MaxStep', 0.005, 'Events', @(t,x) eventCollision(t, x, u, param, 'Track_downscaled.png'));
 tHist       = 0:param.dt:param.T;       % Specify times the output is returned
 uHist       = nan(2, length(tHist));        % Sigma_f input
 
-% Set initial conditions
-x0 = bicycleInitialConditions(param);
+
 
    
 
